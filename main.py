@@ -4,6 +4,8 @@ url = f"https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo_sgs}/dados?formato
 
 df = pd.read_json(url)
 
+# Gráfico do histórico da Dívida Bruta
+
 import matplotlib.pyplot as plt
 
 # 1. Ajuste e preparação dos dados reais
@@ -206,7 +208,72 @@ ax.set_xlabel("Período", fontsize=11)
 ax.set_ylabel("% do PIB", fontsize=11)
 ax.grid(True, linestyle="--", alpha=0.3)
 ax.set_ylim(43, 95)  # Ajuste fino no topo para acomodar as novas caixas
-ax.legend(loc="upper left")
+ax.legend(loc="upper left", bbox_to_anchor=(0, 0.90))
+
+
+# ============================================================
+# VARIAÇÃO DA DÍVIDA POR GESTÃO PRESIDENCIAL
+# ============================================================
+
+gestoes = [
+    ("Dilma", "2014-12-01", "2016-08-01"),
+    ("Temer", "2016-08-01", "2019-01-01"),
+    ("Bolsonaro", "2019-01-01", "2023-01-01"),
+    ("Lula", "2023-01-01", None),
+]
+
+# Posição vertical das caixas
+y_caixa = 91.5
+
+for nome, inicio, fim in gestoes:
+    inicio = pd.Timestamp(inicio)
+
+    # Última gestão: vai até a última observação real
+    if fim is None:
+        periodo = df_filtro[df_filtro["data"] >= inicio].copy()
+    else:
+        fim = pd.Timestamp(fim)
+        periodo = df_filtro[
+            (df_filtro["data"] >= inicio) &
+            (df_filtro["data"] < fim)
+        ].copy()
+
+    if len(periodo) < 2:
+        continue
+
+    primeiro = periodo.iloc[0]
+    ultimo = periodo.iloc[-1]
+
+    variacao = ultimo["valor"] - primeiro["valor"]
+    cor = "#b22222" if variacao > 0 else "#174a8b"
+
+    texto = (
+        f"{variacao:+.1f} p.p.\n"
+        f"{nome}"
+    )
+
+    # Centro temporal da gestão
+    centro = primeiro["data"] + (
+        ultimo["data"] - primeiro["data"]
+    ) / 2
+
+    ax.text(
+        centro,
+        y_caixa,
+        texto,
+        ha="center",
+        va="center",
+        fontsize=9,
+        fontweight="bold",
+        color="white",
+        bbox=dict(
+            boxstyle="square,pad=0.35",
+            facecolor=cor,
+            edgecolor="none",
+            alpha=0.95,
+        ),
+        zorder=10,
+    )
 
 plt.tight_layout()
 plt.show()
