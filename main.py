@@ -5,7 +5,6 @@ url = f"https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo_sgs}/dados?formato
 df = pd.read_json(url)
 
 import matplotlib.pyplot as plt
-#import pandas as pd
 
 # 1. Ajuste e preparação dos dados reais
 df["data"] = pd.to_datetime(df["data"], format="%d/%m/%Y")
@@ -214,10 +213,8 @@ plt.show()
 
 # Grafico final com a projeção feita pelo modelo arima
 
-#import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-#from pmdarima.arima import auto_arima
+from pmdarima.arima import auto_arima
 
 # 1. Garante formato de data correto no histórico principal do seu DataFrame
 df["data"] = pd.to_datetime(df["data"], format="%d/%m/%Y")
